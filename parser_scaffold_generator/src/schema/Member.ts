@@ -1,7 +1,7 @@
 // This file is part of cxsd, copyright (c) 2016 BusFaster Ltd.
 // Released under the MIT license, see LICENSE.
 
-import * as cxml from 'cxml';
+import * as cxml from '../../../runtime_parser/src/cxml';
 
 import {Namespace} from './Namespace';
 import {Type} from './Type';
