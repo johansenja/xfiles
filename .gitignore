@@ -6,4 +6,3 @@ cache/
 *.log.*
 *.log
 *.tgz
-dist/
