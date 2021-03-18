@@ -215,7 +215,7 @@ export class Parser {
       );
     });
 
-    // stream.pipe(xml);
+    stream.pipe(xml);
 
     return promise;
   }
