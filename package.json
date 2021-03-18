@@ -10,9 +10,9 @@
     "tsc": "tsc",
     "typings": "typings"
   },
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "author": "Juha Järvi",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "author": "johansenja",
   "license": "UNLICENSED",
   "keywords": [
     "xsd",
