@@ -1,0 +1,1 @@
+{"version":3,"file":"NamespaceRef.d.ts","sourceRoot":"","sources":["../../../../parser_scaffold_generator/src/schema/NamespaceRef.ts"],"names":[],"mappings":"AAGA,OAAO,EAAC,SAAS,EAAC,MAAM,aAAa,CAAC;AAEtC,MAAM,WAAW,YAAY;IAC5B,SAAS,EAAE,MAAM,CAAC;IAClB,YAAY,EAAE,MAAM,CAAC;IACrB,SAAS,EAAE,SAAS,CAAC;CACrB"}

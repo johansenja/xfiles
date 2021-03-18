@@ -4,7 +4,7 @@
 import * as cmd from 'commander';
 
 import {Cache, FetchOptions} from 'cget';
-import * as cxml from '../../runtime_parser/src/cxml';
+import * as cxml from "../../runtime_parser";
 
 import {Context} from './xsd/Context';
 import {Namespace} from './xsd/Namespace';
