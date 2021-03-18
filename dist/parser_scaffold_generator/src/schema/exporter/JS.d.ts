@@ -1,8 +1,8 @@
-import { Exporter } from './Exporter';
-import { Namespace } from '../Namespace';
-import { Member } from '../Member';
-import { MemberRef } from '../MemberRef';
-import { Type } from '../Type';
+import { Exporter } from "./Exporter";
+import { Namespace } from "../Namespace";
+import { Member } from "../Member";
+import { MemberRef } from "../MemberRef";
+import { Type } from "../Type";
 export declare type NumTbl = {
     [id: string]: number;
 };
