@@ -26,12 +26,10 @@
     "@types/bluebird": "^3.0.37",
     "@types/commander": "~2.9.0",
     "@types/node": "^7.0.0",
-    "@types/node-expat": "~2.3.1",
     "@types/sax": "0.0.28",
     "bluebird": "^3.4.7",
     "cget": "~0.0.5",
     "commander": "~2.9.0",
-    "node-expat": "~2.3.15",
     "sax": "~1.2.1"
   },
   "devDependencies": {

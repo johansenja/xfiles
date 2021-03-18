@@ -1,9 +1,9 @@
-import * as Promise from 'bluebird';
-import { CacheResult } from 'cget';
-import { Context } from './Context';
-import { State } from './State';
-import { Loader } from './Loader';
-import { Source } from './Source';
+import * as Promise from "bluebird";
+import { CacheResult } from "cget";
+import { Context } from "./Context";
+import { State } from "./State";
+import { Loader } from "./Loader";
+import { Source } from "./Source";
 export declare class Parser {
     constructor(context: Context);
     startElement(state: State, name: string, attrTbl: {
@@ -16,7 +16,7 @@ export declare class Parser {
     /** Temporarily holds a qualified name, re-used to avoid allocating objects. */
     private qName;
     /** List of parser states still needing further processing
-      * after previous stage is done. */
+     * after previous stage is done. */
     private pendingList;
     /** Defines valid contents for the XML file root element. */
     private rootRule;
