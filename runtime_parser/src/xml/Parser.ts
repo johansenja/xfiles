@@ -226,7 +226,7 @@ export class Parser {
 
       state = state.parent;
 
-      if (member.proxy) {
+      if (member && member.proxy) {
         if (item) state.item[member.safeName] = item;
         item = state.item;
 
