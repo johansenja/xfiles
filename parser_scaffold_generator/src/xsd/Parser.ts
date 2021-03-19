@@ -16,6 +16,7 @@ import { Source } from "./Source";
 import { QName } from "./QName";
 
 import * as util from "util";
+import { Base } from "./types/Base";
 
 /** Parse syntax rules encoded into handler classes. */
 
@@ -52,7 +53,7 @@ export class Parser {
   startElement(
     state: State,
     name: string,
-    attrTbl: { [name: string]: string }
+    attrTbl: sax.Tag["attributes"] | sax.QualifiedTag["attributes"]
   ) {
     var qName = this.qName;
 
@@ -90,7 +91,7 @@ export class Parser {
 
     for (var key of rule.attributeList) {
       if (attrTbl.hasOwnProperty(key)) {
-        ((xsdElem as any) as { [key: string]: string })[key] = attrTbl[key];
+        (xsdElem as any)[key] = attrTbl[key];
       }
     }
 
@@ -107,7 +108,7 @@ export class Parser {
     var state = new State(null, this.rootRule, source);
     var importList: { namespace: Namespace; url: string }[] = [];
 
-    var xml = sax.createStream(true, { position: true });
+    var parser = sax.parser(true, { position: true });
 
     state.stateStatic = {
       context: this.context,
@@ -117,13 +118,11 @@ export class Parser {
       },
 
       getLineNumber: () => {
-        // return xml.getCurrentLineNumber();
-        return 0;
+        return parser.line + 1;
       },
 
       getBytePos: () => {
-        // return xml.getCurrentByteIndex();
-        return 0;
+        return parser.position;
       },
 
       textDepth: 0,
@@ -143,25 +142,22 @@ export class Parser {
 
     var pendingList = this.pendingList;
 
-    xml.on(
-      "startElement",
-      (name: string, attrTbl: { [name: string]: string }) => {
-        // xml.on('opentag', (node: sax.Tag) => {
-        // var name = node.name;
-        // var attrTbl = node.attributes;
+    parser.onopentag = (tag: sax.Tag | sax.QualifiedTag) => {
+      // xml.on('opentag', (node: sax.Tag) => {
+      // var name = node.name;
+      // var attrTbl = node.attributes;
 
-        try {
-          state = this.startElement(state, name, attrTbl);
-        } catch (err) {
-          // Exceptions escaping from node-expat's event handlers cause weird effects.
-          console.error(err);
-          console.log("Stack:");
-          console.error(err.stack);
-        }
+      try {
+        state = this.startElement(state, tag.name, tag.attributes);
+      } catch (err) {
+        // Exceptions escaping from node-expat's event handlers cause weird effects.
+        console.error(err);
+        console.log("Stack:");
+        console.error(err.stack);
       }
-    );
+    };
 
-    xml.on("endElement", function (name: string) {
+    parser.onclosetag = function (name: string) {
       // xml.on('closetag', function() {
       if (state.xsdElement) {
         if (state.xsdElement.loaded) {
@@ -179,27 +175,27 @@ export class Parser {
       }
 
       state = state.parent;
-    });
+    };
 
-    xml.on("text", function (text: string) {
+    parser.ontext = function (text: string) {
       if (stateStatic.textDepth) {
         stateStatic.textHandlerList[stateStatic.textDepth - 1].addText(
           state,
           text
         );
       }
-    });
+    };
 
-    xml.on("error", function (err: any) {
+    parser.onerror = function (err: any) {
       console.error(err);
-    });
+    };
 
     // // Expat-specific handler.
     // stream.on("data", (data: Buffer) => {
     //   xml.parse(data, false);
     // });
 
-    stream.on("end", () => {
+    parser.onend = () => {
       // xml.on('end', () => {
       // Finish parsing the file (synchronous call).
 
@@ -213,9 +209,12 @@ export class Parser {
           return loader.importFile(spec.url, spec.namespace);
         })
       );
-    });
-
-    stream.pipe(xml);
+    };
+    try {
+      parser.write(stream.read());
+    } finally {
+      parser.close();
+    }
 
     return promise;
   }

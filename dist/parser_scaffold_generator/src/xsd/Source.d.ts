@@ -1,13 +1,12 @@
-import * as Promise from 'bluebird';
-import { Context } from './Context';
-import { Namespace } from './Namespace';
+import * as Promise from "bluebird";
+import * as sax from "sax";
+import { Context } from "./Context";
+import { Namespace } from "./Namespace";
 /** Details of a single XSD source file. */
 export declare class Source {
     constructor(urlRemote: string, context: Context, targetNamespace?: Namespace);
     /** Called by the parser, converts XSD attributes describing the schema into references to internal objects. */
-    parse(attrTbl: {
-        [name: string]: string;
-    }): void;
+    parse(attrTbl: sax.Tag["attributes"] | sax.QualifiedTag["attributes"]): void;
     /** Find a namespace according to its full name or the short name as used in this source file. */
     lookupNamespace(ref: string): Namespace;
     /** Resolve a possible relative URL in the context of this source file. */

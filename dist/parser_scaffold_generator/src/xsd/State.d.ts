@@ -1,9 +1,10 @@
-import * as types from './types';
-import { Rule } from './Rule';
-import { Context } from './Context';
-import { Namespace } from './Namespace';
-import { Source } from './Source';
-import { Scope } from './Scope';
+import * as types from "./types";
+import * as sax from "sax";
+import { Rule } from "./Rule";
+import { Context } from "./Context";
+import { Namespace } from "./Namespace";
+import { Source } from "./Source";
+import { Scope } from "./Scope";
 /** Parser state, passed around between functions. */
 export declare class State {
     constructor(parent: State, rule: Rule, source?: Source);
@@ -17,9 +18,7 @@ export declare class State {
     rule: Rule;
     source: Source;
     private scope;
-    attributeTbl: {
-        [name: string]: string;
-    };
+    attributeTbl: sax.Tag["attributes"] | sax.QualifiedTag["attributes"];
     xsdElement: types.Base;
     depth: number;
     index: number;

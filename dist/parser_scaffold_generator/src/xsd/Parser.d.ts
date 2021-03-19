@@ -1,3 +1,4 @@
+import * as sax from "sax";
 import * as Promise from "bluebird";
 import { CacheResult } from "cget";
 import { Context } from "./Context";
@@ -6,9 +7,7 @@ import { Loader } from "./Loader";
 import { Source } from "./Source";
 export declare class Parser {
     constructor(context: Context);
-    startElement(state: State, name: string, attrTbl: {
-        [name: string]: string;
-    }): State;
+    startElement(state: State, name: string, attrTbl: sax.Tag["attributes"] | sax.QualifiedTag["attributes"]): State;
     init(cached: CacheResult, source: Source, loader: Loader): Promise<Source[]>;
     /** Bind references, call after all imports have been initialized. */
     resolve(): void;
