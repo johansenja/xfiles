@@ -2,7 +2,6 @@
 // Released under the MIT license, see LICENSE.
 
 import * as sax from "sax";
-import * as Promise from "bluebird";
 
 import { CacheResult } from "cget";
 import { Rule } from "./Rule";
@@ -104,7 +103,7 @@ export class Parser {
     return state;
   }
 
-  init(cached: CacheResult, source: Source, loader: Loader) {
+  init(xml: string, source: Source, loader: Loader) {
     var state = new State(null, this.rootRule, source);
     var importList: { namespace: Namespace; url: string }[] = [];
 
@@ -137,8 +136,6 @@ export class Parser {
       resolve = res;
       reject = rej;
     });
-
-    var stream = cached.stream;
 
     var pendingList = this.pendingList;
 
@@ -187,6 +184,7 @@ export class Parser {
     };
 
     parser.onerror = function (err: any) {
+      console.log("here", parser.position, parser.tag);
       console.error(err);
     };
 
@@ -195,28 +193,25 @@ export class Parser {
     //   xml.parse(data, false);
     // });
 
+    let fileList: Source[];
     parser.onend = () => {
       // xml.on('end', () => {
       // Finish parsing the file (synchronous call).
 
       // xml.parse("", true); // Expat-specific line.
 
-      resolve(
-        importList.map((spec: { namespace: Namespace; url: string }) => {
+      fileList = importList.map(
+        (spec: { namespace: Namespace; url: string }) => {
           console.log(
             "IMPORT into " + spec.namespace.name + " from " + spec.url
           );
           return loader.importFile(spec.url, spec.namespace);
-        })
+        }
       );
     };
-    try {
-      parser.write(stream.read());
-    } finally {
-      parser.close();
-    }
+    parser.write(xml).close();
 
-    return promise;
+    return fileList;
   }
 
   /** Bind references, call after all imports have been initialized. */
