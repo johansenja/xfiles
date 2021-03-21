@@ -61,6 +61,33 @@ function convertPrimitive(text: string, type: Type) {
   return null;
 }
 
+function sanitizeNonExistentFields(item: any): any {
+  if (item && item.constructor && item.constructor.name === "XmlType") {
+    if (item._exists === false) {
+      return undefined;
+    } else {
+      const itemDup: Record<string, any> = {};
+      for (const prop in item) {
+        if (
+          prop === "constructor" ||
+          prop === "_exists" ||
+          prop === "_namespace"
+        )
+          continue;
+
+        const i: any = sanitizeNonExistentFields(item[prop]);
+        if (i !== undefined) itemDup[prop] = i;
+      }
+      return itemDup;
+    }
+  } else if (Array.isArray(item)) {
+    return item
+      .map((i) => sanitizeNonExistentFields(i))
+      .filter((i) => i !== null && i !== undefined);
+  }
+  return item;
+}
+
 export class Parser {
   attach<CustomHandler extends HandlerInstance>(handler: {
     new (): CustomHandler;
@@ -248,7 +275,7 @@ export class Parser {
     });
 
     xml.on("end", function () {
-      resolve((rootState.item as any) as Output);
+      resolve((sanitizeNonExistentFields(rootState.item) as any) as Output);
     });
 
     xml.on("error", function (err: any) {
