@@ -1,5 +1,5 @@
-import { Namespace } from './Namespace';
-import { Source } from './Source';
+import { Namespace } from "./Namespace";
+import { Source } from "./Source";
 /** Qualified name, including reference to a namespace. */
 export declare class QName {
     constructor(name?: string, source?: Source);

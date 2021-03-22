@@ -1,79 +1,68 @@
 // This file is part of cxsd, copyright (c) 2015-2016 BusFaster Ltd.
 // Released under the MIT license, see LICENSE.
+import * as fs from "fs";
+import { Address, FetchOptions, Cache, CacheResult, util } from "cget";
 
-import * as Promise from 'bluebird';
-
-import {Address, FetchOptions, Cache, CacheResult, util} from 'cget';
-
-import {Context} from './Context';
-import {Namespace} from './Namespace';
-import {Source} from './Source';
-import {Parser} from './Parser';
+import { Context } from "./Context";
+import { Namespace } from "./Namespace";
+import { Source } from "./Source";
+import { Parser } from "./Parser";
 
 /** Loader handles caching schema definitions and calling parser stages. */
 
 export class Loader {
-	constructor(context: Context, options?: FetchOptions) {
-		this.context = context;
-		this.options = util.clone(options);
-		this.parser = new Parser(context);
-	}
+  constructor(context: Context, options?: FetchOptions) {
+    this.context = context;
+    this.options = util.clone(options);
+    this.parser = new Parser(context);
+  }
 
-	import(urlRemote: string) {
-		var promise = new Promise<Namespace>((resolve, reject) => {
-			this.resolve = resolve;
-			this.reject = reject;
+  import(filePath: string) {
+    this.source = this.importFile(filePath);
+    return this.source.targetNamespace;
+  }
 
-			this.source = this.importFile(urlRemote);
-		});
+  importFile(path: string, namespace?: Namespace) {
+    var options = this.options;
 
-		return(promise);
-	}
+    var source = Loader.sourceTbl[path];
 
-	importFile(urlRemote: string, namespace?: Namespace) {
-		var options = this.options;
-		options.address = new Address(urlRemote);
+    if (!source) {
+      source = new Source(path, this.context, namespace);
 
-		var source = Loader.sourceTbl[urlRemote];
+      const xml = fs.readFileSync(path).toString();
+      const dependencyList = this.parser.init(xml, source, this);
 
-		if(!source) {
-			source = new Source(urlRemote, this.context, namespace);
+      // TODO: The source could be parsed already if all dependencies
+      // (and recursively their dependencies) have been preprocessed.
 
-			Loader.cache.fetch(options).then((cached: CacheResult) => {
-				source.updateUrl(urlRemote, cached.address.url);
+      if (--this.pendingCount == 0) this.finish();
 
-				return(this.parser.init(cached, source, this));
-			}).then((dependencyList: Source[]) => {
-				// TODO: The source could be parsed already if all dependencies
-				// (and recursively their dependencies) have been preprocessed.
+      Loader.sourceTbl[path] = source;
+      ++this.pendingCount;
+    }
 
-				if(--this.pendingCount == 0) this.finish();
-			});
+    return source;
+  }
 
-			Loader.sourceTbl[urlRemote] = source;
-			++this.pendingCount;
-		}
+  private finish() {
+    this.parser.resolve();
+  }
 
-		return(source);
-	}
+  getOptions() {
+    return this.options;
+  }
 
-	private finish() {
-		this.parser.resolve();
-		this.resolve(this.source.targetNamespace);
-	}
+  private static cache = new Cache("cache/xsd", "_index.xsd");
+  private static sourceTbl: { [path: string]: Source } = {};
 
-	getOptions() { return(this.options); }
+  private context: Context;
+  private options: FetchOptions;
+  private parser: Parser;
+  private source: Source;
 
-	private static cache = new Cache('cache/xsd', '_index.xsd');
-	private static sourceTbl: {[url: string]: Source} = {};
+  private pendingCount = 0;
 
-	private context: Context;
-	private options: FetchOptions;
-	private parser: Parser;
-	private source: Source;
-
-	private pendingCount = 0;
-
-	private resolve: (result: Namespace) => void;
-	private reject: (err: any) => void;
+  private resolve: (result: Namespace) => void;
+  private reject: (err: any) => void;
 }

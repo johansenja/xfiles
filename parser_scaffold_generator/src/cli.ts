@@ -38,7 +38,7 @@ interface ICommand extends _ICommand {
 
 if (process.argv.length < 3) cmd.help();
 
-function handleConvert(urlRemote: string, opts: { [key: string]: any }) {
+function handleConvert(filePath: string, opts: { [key: string]: any }) {
   var schemaContext = new schema.Context();
   var xsdContext = new Context(schemaContext);
 
@@ -56,33 +56,32 @@ function handleConvert(urlRemote: string, opts: { [key: string]: any }) {
 
   var loader = new Loader(xsdContext, fetchOptions);
 
-  loader.import(urlRemote).then((namespace: Namespace) => {
-    try {
-      exportNamespace(xsdContext.primitiveSpace, schemaContext);
-      exportNamespace(xsdContext.xmlSpace, schemaContext);
+  const namespace = loader.import(filePath);
+  try {
+    exportNamespace(xsdContext.primitiveSpace, schemaContext);
+    exportNamespace(xsdContext.xmlSpace, schemaContext);
 
-      var spec = exportNamespace(namespace, schemaContext);
+    var spec = exportNamespace(namespace, schemaContext);
 
-      var addImports = new AddImports(spec);
-      var sanitize = new Sanitize(spec);
+    var addImports = new AddImports(spec);
+    var sanitize = new Sanitize(spec);
 
-      var importsAdded = addImports.exec();
+    var importsAdded = addImports.exec();
 
-      // Find ID numbers of all types imported from other namespaces.
-      importsAdded
-        .then(() =>
-          // Rename types to valid JavaScript class names,
-          // adding a prefix or suffix to duplicates.
-          sanitize.exec()
-        )
-        .then(() => sanitize.finish())
-        .then(() => addImports.finish(importsAdded.value()))
-        .then(() => new schema.exporter.JS(spec, jsCache).exec())
-        .then(() => new schema.exporter.TS(spec, tsCache).exec());
-    } catch (err) {
-      console.error(err);
-      console.log("Stack:");
-      console.error(err.stack);
-    }
-  });
+    // Find ID numbers of all types imported from other namespaces.
+    importsAdded
+      .then(() =>
+        // Rename types to valid JavaScript class names,
+        // adding a prefix or suffix to duplicates.
+        sanitize.exec()
+      )
+      .then(() => sanitize.finish())
+      .then(() => addImports.finish(importsAdded.value()))
+      .then(() => new schema.exporter.JS(spec, jsCache).exec())
+      .then(() => new schema.exporter.TS(spec, tsCache).exec());
+  } catch (err) {
+    console.error(err);
+    console.log("Stack:");
+    console.error(err.stack);
+  }
 }
