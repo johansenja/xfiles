@@ -60,32 +60,49 @@ function convertPrimitive(text: string, type: Type) {
 
   return null;
 }
-
 function sanitizeNonExistentFields(item: any): any {
-  if (item && item.constructor && item.constructor.name === "XmlType") {
-    if (item._exists === false) {
-      return undefined;
-    } else {
-      const itemDup: Record<string, any> = {};
-      for (const prop in item) {
-        if (
-          prop === "constructor" ||
-          prop === "_exists" ||
-          prop === "_namespace"
-        )
-          continue;
-
-        const i: any = sanitizeNonExistentFields(item[prop]);
-        if (i !== undefined) itemDup[prop] = i;
+  switch (typeof item) {
+    case "string":
+    case "number":
+    case "boolean":
+    case "undefined":
+      return item;
+    case "object":
+      if (item instanceof Date || item === null) {
+        return item;
+      } else if (
+        item &&
+        item.constructor &&
+        item.constructor.name === "XmlType"
+      ) {
+        if (item._exists === false) {
+          return undefined;
+        } else {
+          const itemDup: Record<string, any> = {};
+          for (const [prop, value] of Object.entries(item)) {
+            if (
+              prop === "constructor" ||
+              prop === "_exists" ||
+              prop === "_namespace"
+            )
+              continue;
+            var i = sanitizeNonExistentFields(value);
+            if (i !== undefined) itemDup[prop] = i;
+          }
+          return itemDup;
+        }
+      } else if (Array.isArray(item)) {
+        return item
+          .map(function (i) {
+            return sanitizeNonExistentFields(i);
+          })
+          .filter(function (i) {
+            return i !== null && i !== undefined;
+          });
       }
-      return itemDup;
-    }
-  } else if (Array.isArray(item)) {
-    return item
-      .map((i) => sanitizeNonExistentFields(i))
-      .filter((i) => i !== null && i !== undefined);
+    default:
+      return item;
   }
-  return item;
 }
 
 export class Parser {
@@ -269,7 +286,9 @@ export class Parser {
             if (!parent.hasOwnProperty(member.safeName))
               parent[member.safeName] = [];
             parent[member.safeName].push(item);
-          } else parent[member.safeName] = item;
+          } else {
+            parent[member.safeName] = item;
+          }
         }
       }
     });
